@@ -1,0 +1,15 @@
+DbNSFP=/$PWD/ filter="*"{
+ workflow.rb
+ lib=lib{
+  rbbt=rbbt{
+   sources=sources{
+    db_NSFP.rb
+   }
+  }
+ }
+ share=share{
+  rbbt_commands=rbbt_commands{
+   bootstrap
+  }
+ }
+}
