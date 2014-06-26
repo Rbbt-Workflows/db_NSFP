@@ -10,7 +10,7 @@ module DbNSFP
     database.unnamed = true
     dumper = TSV::Dumper.new :key_field => "Mutated Isoform", :fields => database.fields, :type => :list, :cast => :to_f
     dumper.init
-    TSV.traverse mutations, :into => dumper, :bar => true, :type => :array do |mutation|
+    TSV.traverse mutations, :into => dumper, :bar => "DbNSFP", :type => :array do |mutation|
       p = database[mutation]
       next if p.nil?
       p.collect!{|v| v == -999 ? nil : v }

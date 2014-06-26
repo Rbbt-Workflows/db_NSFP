@@ -53,7 +53,6 @@ module DbNSFP
   end
 
   DbNSFP.claim DbNSFP.data.readme, :url, "http://dbnsfp.houstonbioinformatics.org/dbNSFPzip/dbNSFP2.5.readme.txt"
-
   def self.database
     @@database||= begin
                      Persist.persist_tsv("dbNSFP", nil, {}, :persist => true, :update => false,
