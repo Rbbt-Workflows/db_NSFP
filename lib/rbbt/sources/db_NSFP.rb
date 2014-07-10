@@ -53,6 +53,7 @@ module DbNSFP
   end
 
   DbNSFP.claim DbNSFP.data.readme, :url, "http://dbnsfp.houstonbioinformatics.org/dbNSFPzip/dbNSFP2.5.readme.txt"
+
   def self.database
     @@database||= begin
                      Persist.persist_tsv("dbNSFP", nil, {}, :persist => true, :update => false,
@@ -63,7 +64,7 @@ module DbNSFP
 
                        organism = "Hsa/jan2013"
 
-                       files = DbNSFP.data.produce.glob('*variant*')#.select{|f| f =~ /22/}
+                       files = DbNSFP.data.produce.glob('*variant*')
 
                        transcript2protein = Organism.transcripts(organism).tsv :fields => ["Ensembl Protein ID"], :type => :single, :persist => true, :unnamed => true
 
@@ -99,10 +100,9 @@ module DbNSFP
                              scores = parts.values_at(*score_fields)
 
                              isoform = protein + ":" << mutation_parts * ""
-                             values = scores.collect{|s| s == '.' ? -999 : s.to_f }
+                             values = scores.collect{|s| (s.empty? or s == '.') ? -999 : s.to_f }
 
                              sharder[isoform] = values
-                             #[isoform, values]
                            else
                              proteins = transcript2protein.values_at *transcripts
                              next if proteins.compact.empty?
@@ -120,18 +120,13 @@ module DbNSFP
 
                              scores_zip = [s] * proteins.length
 
-                             #results = [].extend MultipleResult
-
                              transcripts.each_with_index do |transcript,i|
                                protein = proteins[i]
                                next if protein.nil? or protein.empty?
                                isoform = protein + ":" << (mutations_zip[i] * "")
-                               values = scores_zip[i].collect{|s| s == '.' ? -999 : s.to_f }
+                               values = scores_zip[i].collect{|s| (s.empty? or  s == '.') ? -999 : s.to_f }
                                sharder[isoform] = values
-                               #results << [isoform, values]
                              end
-
-                             #results
                            end
                          end
                        end # traverse files
