@@ -12,17 +12,8 @@ module DbNSFP
     key[0..key.index(":")-1]
   end
 
-  MI_SCORES = %w(SIFT_score SIFT_converted_rankscore SIFT_pred Polyphen2_HDIV_score
-                 Polyphen2_HDIV_rankscore Polyphen2_HDIV_pred Polyphen2_HVAR_score
-                 Polyphen2_HVAR_rankscore Polyphen2_HVAR_pred LRT_score LRT_converted_rankscore
-                 LRT_pred MutationTaster_score MutationTaster_converted_rankscore
-                 MutationTaster_pred MutationAssessor_score MutationAssessor_rankscore
-                 MutationAssessor_pred FATHMM_score FATHMM_rankscore FATHMM_pred RadialSVM_score
-                 RadialSVM_rankscore RadialSVM_pred LR_score LR_rankscore LR_pred
-                 Reliability_index VEST3_score VEST3_rankscore)
-
   def self.organism
-    "Hsa/dec2013"
+    Organism.defaul_code "Hsa"
   end
 
   DbNSFP.claim DbNSFP.data, :proc do |directory|
@@ -62,7 +53,7 @@ module DbNSFP
 
                        require 'rbbt/sources/organism'
 
-                       organism = "Hsa/jan2013"
+                       organism = self.organism
 
                        files = DbNSFP.data.produce.glob('*variant*')
 
@@ -72,6 +63,7 @@ module DbNSFP
                        TSV.traverse files.sort, :bar => "DbNSFP files" do |file|
                          all_fields = TSV.parse_header(file).all_fields
                          scores = all_fields[23..-1]
+                         scores.reject!{|s| s =~ /_pred/}
 
                          if save_header
                            sharder.fields = scores
