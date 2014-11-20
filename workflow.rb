@@ -8,7 +8,7 @@ module DbNSFP
   task :annotate => :tsv do |mutations|
     database = DbNSFP.database
     database.unnamed = true
-    dumper = TSV::Dumper.new :key_field => "Mutated Isoform", :fields => database.fields, :type => :list, :cast => :to_f
+    dumper = TSV::Dumper.new :key_field => "Mutated Isoform", :fields => database.fields, :type => :list, :cast => :to_f, :namespace => DbNSFP.organism
     dumper.init
     TSV.traverse mutations, :into => dumper, :bar => "DbNSFP", :type => :array do |mutation|
       p = database[mutation]

@@ -13,7 +13,7 @@ module DbNSFP
   end
 
   def self.organism
-    Organism.defaul_code "Hsa"
+    Organism.default_code "Hsa"
   end
 
   DbNSFP.claim DbNSFP.data, :proc do |directory|
