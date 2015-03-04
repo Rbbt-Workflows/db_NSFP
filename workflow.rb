@@ -18,6 +18,20 @@ module DbNSFP
     end
   end
 
+  input :mutations, :array, "Mutated Isoforms", nil
+  task :predict => :tsv do |mutations|
+    database = DbNSFP.prediction_database
+    database.unnamed = true
+    dumper = TSV::Dumper.new :key_field => "Mutated Isoform", :fields => database.fields, :type => :list, :cast => :to_f, :namespace => DbNSFP.organism
+    dumper.init
+    TSV.traverse mutations, :into => dumper, :bar => "DbNSFP", :type => :array do |mutation|
+      p = database[mutation]
+      next if p.nil?
+      [mutation, p]
+    end
+  end
+
+
   input :protein, :string, "Ensembl Protein ID"
   task :possible_mutations => :array do |protein|
     database = DbNSFP.database

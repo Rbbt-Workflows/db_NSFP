@@ -1,4 +1,5 @@
 require 'rbbt-util'
+require 'rbbt/sources/organism'
 
 module DbNSFP
   extend Resource
@@ -117,6 +118,88 @@ module DbNSFP
                                next if protein.nil? or protein.empty?
                                isoform = protein + ":" << (mutations_zip[i] * "")
                                values = scores_zip[i].collect{|s| (s.empty? or  s == '.') ? -999 : s.to_f }
+                               sharder[isoform] = values
+                             end
+                           end
+                         end
+                       end # traverse files
+
+                     end # persist
+                   end # end
+  end
+
+  def self.prediction_database
+    @@prediction_database||= begin
+                     Persist.persist_tsv("dbNSFP_prediction", nil, {}, :persist => true, :update => false,
+                                         :file => DbNSFP.predictions_shard.find, :prefix => "dbNSFP", :serializer => :list, :engine => "BDB",
+                                         :shard_function => MI_SHARD_FUNCTION) do |sharder|
+
+                       require 'rbbt/sources/organism'
+
+                       organism = self.organism
+
+                       files = DbNSFP.data.produce.glob('*variant*')
+
+                       transcript2protein = Organism.transcripts(organism).tsv :fields => ["Ensembl Protein ID"], :type => :single, :persist => true, :unnamed => true
+
+                       save_header = true
+                       TSV.traverse files.sort, :bar => "DbNSFP files" do |file|
+                         all_fields = TSV.parse_header(file).all_fields
+                         predictions = all_fields[23..-1]
+                         predictions.select!{|s| s =~ /_pred/}
+
+                         if save_header
+                           sharder.fields = predictions
+                           sharder.key_field = "Mutated Isoform"
+                           print_header = false
+                         end
+
+                         mutation_fields = %w(aaref aapos aaalt).collect{|f| all_fields.index f}
+                         transcript_field = all_fields.index "Ensembl_transcriptid"
+                         prediction_fields = predictions.collect{|f| all_fields.index f}
+
+                         TSV.traverse file, :type => :array, :bar => File.basename(file) do |line|
+                           next if line[0] == "#"
+
+                           parts = line.strip.split("\t",-1)
+                           transcripts = parts[transcript_field].split ";"
+
+                           res = if transcripts.length == 1
+                             transcript = transcripts.first
+                             protein = transcript2protein[transcript]
+                             next if protein.nil? or protein.empty?
+
+                             mutation_parts = parts.values_at(*mutation_fields)
+                             next if mutation_parts[1] == "-1"
+
+                             predictions = parts.values_at(*prediction_fields)
+
+                             isoform = protein + ":" << mutation_parts * ""
+                             values = predictions.collect{|s| (s.empty? or s == '.') ? -999 : s.to_f }
+
+                             sharder[isoform] = values
+                           else
+                             proteins = transcript2protein.values_at *transcripts
+                             next if proteins.compact.empty?
+
+                             mutation_parts = parts.values_at(*mutation_fields)
+                             next if mutation_parts[1] == "-1"
+
+                             if mutation_parts[1].index ";"
+                               mutations_zip = mutation_parts[1].split(";").collect{|pos| [mutation_parts[0],pos,mutation_parts[2]] }
+                             else
+                               mutations_zip = [mutation_parts] * proteins.length
+                             end
+
+                             s = parts.values_at(*prediction_fields)
+
+                             predictions_zip = [s] * proteins.length
+
+                             transcripts.each_with_index do |transcript,i|
+                               protein = proteins[i]
+                               next if protein.nil? or protein.empty?
+                               isoform = protein + ":" << (mutations_zip[i] * "")
+                               values = predictions_zip[i].collect{|s| (s.empty? or  s == '.') ? -999 : s.to_f }
                                sharder[isoform] = values
                              end
                            end
