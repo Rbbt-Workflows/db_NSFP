@@ -4,7 +4,7 @@ require 'rbbt/workflow'
 module DbNSFP
   extend Workflow
 
-  input :mutations, :array, "Mutated Isoforms", nil
+  input :mutations, :array, "Mutated Isoforms", nil, :stream => true
   task :annotate => :tsv do |mutations|
     database = DbNSFP.database
     database.unnamed = true
@@ -18,7 +18,7 @@ module DbNSFP
     end
   end
 
-  input :mutations, :array, "Mutated Isoforms", nil
+  input :mutations, :array, "Mutated Isoforms", nil, :stream => true
   task :predict => :tsv do |mutations|
     database = DbNSFP.prediction_database
     database.unnamed = true
