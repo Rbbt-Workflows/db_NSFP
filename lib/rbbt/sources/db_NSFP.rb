@@ -173,10 +173,10 @@ module DbNSFP
                              mutation_parts = parts.values_at(*mutation_fields)
                              next if mutation_parts[1] == "-1"
 
-                             predictions = parts.values_at(*prediction_fields)
+                             predictions = parts.values_at(*prediction_fields).collect{|v| v.split(";").reject{|_v| _v == '.' or _v == ''}[0]}
 
                              isoform = protein + ":" << mutation_parts * ""
-                             values = predictions.collect{|s| (s.empty? or s == '.') ? -999 : s.to_f }
+                             values = predictions.collect{|s| (s.nil? or s.empty? or s == '.') ? "" : s }
 
                              sharder[isoform] = values
                            else
@@ -194,13 +194,13 @@ module DbNSFP
 
                              s = parts.values_at(*prediction_fields)
 
-                             predictions_zip = [s] * proteins.length
+                             predictions_zip = Misc.zip_fields(s.collect{|v| p = v.split(";"); p.length == 1 ? p * transcripts.length : p})
 
                              transcripts.each_with_index do |transcript,i|
                                protein = proteins[i]
                                next if protein.nil? or protein.empty?
                                isoform = protein + ":" << (mutations_zip[i] * "")
-                               values = predictions_zip[i].collect{|s| (s.empty? or  s == '.') ? -999 : s.to_f }
+                               values = predictions_zip[i].collect{|s| (s.nil? or s.empty? or  s == '.') ? "" : s }
                                sharder[isoform] = values
                              end
                            end
