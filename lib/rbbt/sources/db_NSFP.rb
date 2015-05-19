@@ -19,7 +19,8 @@ module DbNSFP
 
   DbNSFP.claim DbNSFP.data, :proc do |directory|
     #url = "http://dbnsfp.houstonbioinformatics.org/dbNSFPzip/dbNSFPv2.5.zip"
-    url = "https://onedrive.live.com/download?resid=D359D171E382137!56583&authkey=!AKxCv8t2Gm15Q8g&ithint=file%2czip"
+    #url = "https://onedrive.live.com/download?resid=D359D171E382137!56583&authkey=!AKxCv8t2Gm15Q8g&ithint=file%2czip"
+    url = "ftp://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbNSFPv3.0b2a.zip"
     Misc.in_dir(directory) do
       FileUtils.mkdir_p '.source'
       `wget '#{url}' -c -O .source/pkg.zip && cd .source && unzip pkg.zip && find . -name '*variant*' | xargs -I '{}' mv '{}' ../ && cd .. && rm -Rf .source *.zip`
