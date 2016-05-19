@@ -22,7 +22,7 @@ module DbNSFP
   task :predict => :tsv do |mutations|
     database = DbNSFP.prediction_database
     database.unnamed = true
-    dumper = TSV::Dumper.new :key_field => "Mutated Isoform", :fields => database.fields, :type => :list, :cast => :to_f, :namespace => DbNSFP.organism
+    dumper = TSV::Dumper.new :key_field => "Mutated Isoform", :fields => database.fields, :type => :list, :namespace => DbNSFP.organism
     dumper.init
     TSV.traverse mutations, :into => dumper, :bar => self.progress_bar("Predictions from DbNSFP"), :type => :array do |mutation|
       p = database[mutation]
@@ -40,7 +40,7 @@ module DbNSFP
     database.prefix(protein)
   end
 
-  export_asynchronous :annotate, :possible_mutations
+  export_asynchronous :annotate, :predict, :possible_mutations
 end
 
 require 'rbbt/sources/db_NSFP'
