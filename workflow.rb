@@ -13,7 +13,6 @@ module DbNSFP
     TSV.traverse mutations, :into => dumper, :bar => self.progress_bar("Annotate with DbNSFP"), :type => :array do |mutation|
       p = database[mutation]
       next if p.nil?
-      #p.collect!{|v| v == -999 ? nil : v }
       [mutation, p]
     end
   end
