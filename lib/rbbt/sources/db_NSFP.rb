@@ -20,7 +20,8 @@ module DbNSFP
   DbNSFP.claim DbNSFP.data, :proc do |directory|
     #url = "http://dbnsfp.houstonbioinformatics.org/dbNSFPzip/dbNSFPv2.5.zip"
     #url = "https://onedrive.live.com/download?resid=D359D171E382137!56583&authkey=!AKxCv8t2Gm15Q8g&ithint=file%2czip"
-    url = "ftp://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbNSFPv3.0b2a.zip"
+    #url = "ftp://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbNSFPv3.0b2a.zip"
+    url = "ftp://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbNSFPv3.2a.zip"
     Misc.in_dir(directory) do
       FileUtils.mkdir_p '.source'
       `wget '#{url}' -c -O .source/pkg.zip && cd .source && unzip pkg.zip && find . -name '*variant*' | xargs -I '{}' mv '{}' ../ && cd .. && rm -Rf .source *.zip`
@@ -28,23 +29,23 @@ module DbNSFP
     nil
   end
 
-  DbNSFP.claim DbNSFP.mutations, :proc do |filename|
-    Misc.sensiblewrite(filename) do |f|
-      DbNSFP.data.glob('*variant*').each do |file|
-        next unless file =~ /chr19/
-        TSV.traverse file, :type => :array, :bar => file do |line|
-          line = line.strip.gsub(/\t\.\t/, "\t\t")
-          if line =~ /^#/
-            f.puts("#: :type=:list#:namespace=#{organism}")
-            f.puts("#Genomic Mutation" << "\t" << line[1..-1])
-          else
-            chr, pos, ref, alt = line.split("\t")
-            f.puts(([chr, pos, alt] * ":" ) << "\t" << line)
-          end
-        end
-      end
-    end
-  end
+  #DbNSFP.claim DbNSFP.mutations, :proc do |filename|
+  #  Misc.sensiblewrite(filename) do |f|
+  #    DbNSFP.data.glob('*variant*').each do |file|
+  #      next unless file =~ /chr19/
+  #      TSV.traverse file, :type => :array, :bar => file do |line|
+  #        line = line.strip.gsub(/\t\.\t/, "\t\t")
+  #        if line =~ /^#/
+  #          f.puts("#: :type=:list#:namespace=#{organism}")
+  #          f.puts("#Genomic Mutation" << "\t" << line[1..-1])
+  #        else
+  #          chr, pos, ref, alt = line.split("\t")
+  #          f.puts(([chr, pos, alt] * ":" ) << "\t" << line)
+  #        end
+  #      end
+  #    end
+  #  end
+  #end
 
   DbNSFP.claim DbNSFP.data.readme, :url, "http://dbnsfp.houstonbioinformatics.org/dbNSFPzip/dbNSFP2.5.readme.txt"
 
