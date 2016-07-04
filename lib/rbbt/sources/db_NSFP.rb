@@ -82,6 +82,8 @@ module DbNSFP
                          TSV.traverse file, :type => :array, :bar => File.basename(file) do |line|
                            next if line[0] == "#"
 
+                           line = Misc.fixutf8 line
+
                            parts = line.strip.split("\t",-1)
                            transcripts = parts[transcript_field].split ";"
 
