@@ -17,7 +17,7 @@ module DbNSFP
     Organism.default_code "Hsa"
   end
 
-  DbNSFP.claim DbNSFP.data, :proc do |directory|
+  DbNSFP.claim DbNSFP.variant_data, :proc do |directory|
     #url = "http://dbnsfp.houstonbioinformatics.org/dbNSFPzip/dbNSFPv2.5.zip"
     #url = "https://onedrive.live.com/download?resid=D359D171E382137!56583&authkey=!AKxCv8t2Gm15Q8g&ithint=file%2czip"
     #url = "ftp://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbNSFPv3.0b2a.zip"
@@ -47,7 +47,7 @@ module DbNSFP
   #  end
   #end
 
-  DbNSFP.claim DbNSFP.data.readme, :url, "http://dbnsfp.houstonbioinformatics.org/dbNSFPzip/dbNSFP2.5.readme.txt"
+  DbNSFP.claim DbNSFP.variant_data.readme, :url, "http://dbnsfp.houstonbioinformatics.org/dbNSFPzip/dbNSFP2.5.readme.txt"
 
   def self.database
     @@database||= begin
@@ -59,7 +59,8 @@ module DbNSFP
 
                        organism = self.organism
 
-                       files = DbNSFP.data.produce.glob('*variant*')
+                       DbNSFP.variant_data.produce
+                       files = DbNSFP.variant_data.glob('*variant*')
 
                        transcript2protein = Organism.transcripts(organism).tsv :fields => ["Ensembl Protein ID"], :type => :single, :persist => true, :unnamed => true
 
@@ -143,7 +144,7 @@ module DbNSFP
 
                        organism = self.organism
 
-                       files = DbNSFP.data.produce.glob('*variant*')
+                       files = DbNSFP.variant_data.produce.glob('*variant*')
 
                        transcript2protein = Organism.transcripts(organism).tsv :fields => ["Ensembl Protein ID"], :type => :single, :persist => true, :unnamed => true
 
