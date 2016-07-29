@@ -6,6 +6,19 @@ module DbNSFP
 
   input :mutations, :array, "Mutated Isoforms", nil, :stream => true
   task :annotate => :tsv do |mutations|
+    database = DbNSFP.annotation_database
+    database.unnamed = true
+    dumper = TSV::Dumper.new :key_field => "Mutated Isoform", :fields => database.fields, :type => :list, :cast => :to_f, :namespace => DbNSFP.organism
+    dumper.init
+    TSV.traverse mutations, :into => dumper, :bar => self.progress_bar("Annotate with DbNSFP"), :type => :array do |mutation|
+      p = database[mutation]
+      next if p.nil?
+      [mutation, p]
+    end
+  end
+
+  input :mutations, :array, "Mutated Isoforms", nil, :stream => true
+  task :score => :tsv do |mutations|
     database = DbNSFP.database
     database.unnamed = true
     dumper = TSV::Dumper.new :key_field => "Mutated Isoform", :fields => database.fields, :type => :list, :cast => :to_f, :namespace => DbNSFP.organism
