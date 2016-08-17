@@ -52,7 +52,7 @@ module DbNSFP
     database.prefix(protein)
   end
 
-  export_asynchronous :annotate, :predict, :possible_mutations
+  export_asynchronous :annotate, :score, :predict, :possible_mutations
 end
 
 require 'rbbt/sources/db_NSFP'
