@@ -32,7 +32,7 @@ module DbNSFP
   DbNSFP.claim DbNSFP.readme, :url, "http://dbnsfp.houstonbioinformatics.org/dbNSFPzip/dbNSFP2.5.readme.txt"
 
   def self.annotation_database
-    @@database||= begin
+    @@annotation_database||= begin
                      Persist.persist_tsv("dbNSFP", nil, {}, :persist => true, :update => false,
                                          :file => DbNSFP.annotations_shard.find, :prefix => "dbNSFP", :serializer => :float_array, :engine => "BDB",
                                          :shard_function => MI_SHARD_FUNCTION) do |sharder|
@@ -48,19 +48,19 @@ module DbNSFP
                        save_header = true
                        TSV.traverse files.sort, :bar => "DbNSFP files" do |file|
                          all_fields = TSV.parse_header(file).all_fields
-                         scores = all_fields[23..-1]
-                         scores.reject!{|s| s =~ /_pred/}
-                         scores.reject!{|s| s =~ /score/}
+                         annotations = all_fields[23..-1]
+                         annotations.reject!{|s| s =~ /_pred/}
+                         annotations.reject!{|s| s =~ /score/}
 
                          if save_header
-                           sharder.fields = scores
+                           sharder.fields = annotations
                            sharder.key_field = "Mutated Isoform"
                            print_header = false
                          end
 
                          mutation_fields = %w(aaref aapos aaalt).collect{|f| all_fields.index f}
                          transcript_field = all_fields.index "Ensembl_transcriptid"
-                         score_fields = scores.collect{|f| all_fields.index f}
+                         score_fields = annotations.collect{|f| all_fields.index f}
 
                          TSV.traverse file, :type => :array, :bar => File.basename(file) do |line|
                            next if line[0] == "#"
@@ -78,10 +78,10 @@ module DbNSFP
                              mutation_parts = parts.values_at(*mutation_fields)
                              next if mutation_parts[1] == "-1"
 
-                             scores = parts.values_at(*score_fields)
+                             annotations = parts.values_at(*score_fields)
 
                              isoform = protein + ":" << mutation_parts * ""
-                             values = scores.collect{|s| (s.empty? or s == '.') ? -999 : s.to_f }
+                             values = annotations.collect{|s| (s.empty? or s == '.') ? -999 : s.to_f }
 
                              sharder[isoform] = values
                            else
@@ -99,13 +99,13 @@ module DbNSFP
 
                              s = parts.values_at(*score_fields)
 
-                             scores_zip = [s] * proteins.length
+                             annotations_zip = [s] * proteins.length
 
                              transcripts.each_with_index do |transcript,i|
                                protein = proteins[i]
                                next if protein.nil? or protein.empty?
                                isoform = protein + ":" << (mutations_zip[i] * "")
-                               values = scores_zip[i].collect{|s| (s.empty? or  s == '.') ? -999 : s.to_f }
+                               values = annotations_zip[i].collect{|s| (s.empty? or  s == '.') ? -999 : s.to_f }
                                sharder[isoform] = values
                              end
                            end
